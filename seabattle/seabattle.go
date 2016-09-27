@@ -1,7 +1,7 @@
 package main
 
 import (
-  "bytes"
+	"bytes"
 	"fmt"
 	"github.com/bukind/seabattle"
 	"github.com/hoisie/web"
@@ -10,14 +10,14 @@ import (
 )
 
 type Game struct {
-  self *seabattle.Board
-  peer *seabattle.Board
+	self *seabattle.Board
+	peer *seabattle.Board
 }
 
 var game Game
 
 func start(ctx *web.Context, page string) string {
-  out := &bytes.Buffer{}
+	out := &bytes.Buffer{}
 	fmt.Fprintf(out, "<!DOCTYPE html>\n<html>\n<head>\n")
 	fmt.Fprintf(out, "<meta charset=\"UTF-8\"/>\n")
 	fmt.Fprintf(out, "<title>Some title</title>\n</head>\n")
@@ -28,19 +28,19 @@ func start(ctx *web.Context, page string) string {
 	fmt.Fprintf(out, "%s</table>\n", game.peer.HtmlShow())
 	fmt.Fprintf(out, "</body>\n")
 	fmt.Fprintf(out, "</html>\n")
-  return out.String()
+	return out.String()
 }
 
 func main() {
-  /*
-  f, err := os.Create("seabattle.log")
-	if err != nil {
-	  fmt.Println("%v", err)
-		return
-	}
-	logger := log.New(f, "", log.Ldate | log.Ltime)
-	web.SetLogger(logger)
-  */
+	/*
+	  f, err := os.Create("seabattle.log")
+		if err != nil {
+		  fmt.Println("%v", err)
+			return
+		}
+		logger := log.New(f, "", log.Ldate | log.Ltime)
+		web.SetLogger(logger)
+	*/
 	game.self = seabattle.NewBoard(10)
 	game.peer = seabattle.NewBoard(10)
 
