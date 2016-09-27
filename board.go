@@ -3,6 +3,7 @@ package seabattle
 import (
 	"bytes"
 	"fmt"
+	"math/rand"
 )
 
 const (
@@ -35,13 +36,102 @@ func NewBoard(size int) *Board {
 	return b
 }
 
+func (b *Board) AddRandomShips() bool {
+	const maxshipsize = 4
+	const maxattempt = 50
+	num := 1
+	for s := maxshipsize; s > 0; s-- {
+		for n := 0; n < num; n++ {
+			for attempt := 0; attempt < maxattempt; attempt++ {
+				if b.placeShip(s) {
+					break
+				}
+				if attempt+1 >= maxattempt {
+					return false
+				}
+			}
+		}
+		num++
+	}
+	return true
+}
+
+func (b *Board) placeShip(s int) bool {
+	dx := 1
+	dy := s
+	if r := rand.Intn(2); r != 0 {
+		dx = s
+		dy = 1
+	}
+	x0 := rand.Intn(len(b.Cells[0]) - dx + 1)
+	y0 := rand.Intn(len(b.Cells) - dy + 1)
+	if dx > 1 {
+		if !(b.isCellsEmptyY(y0-1, x0, x0+dx) &&
+			b.isCellsEmptyY(y0+1, x0, x0+dx) &&
+			b.isCellsEmptyY(y0, x0-1, x0+dx+1)) {
+			return false
+		}
+		for i := x0; i < x0+dx; i++ {
+			b.Cells[y0][i] = CellShip
+		}
+	} else {
+		if !(b.isCellsEmptyX(x0-1, y0, y0+dy) &&
+			b.isCellsEmptyX(x0+1, y0, y0+dy) &&
+			b.isCellsEmptyX(x0, y0-1, y0+dy+1)) {
+			return false
+		}
+		for i := y0; i < y0+dy; i++ {
+			b.Cells[i][x0] = CellShip
+		}
+	}
+	return true
+}
+
+func (b *Board) isCellsEmptyY(y, x0, x1 int) bool {
+	if y < 0 || y >= len(b.Cells) {
+		return true
+	}
+	if x0 < 0 {
+		x0 = 0
+	}
+	if x1 > len(b.Cells[0]) {
+		x1 = len(b.Cells[0])
+	}
+	for i := x0; i < x1; i++ {
+		c := b.Cells[y][i]
+		if c == CellShip || c == CellHit || c == CellDebris {
+			return false
+		}
+	}
+	return true
+}
+
+func (b *Board) isCellsEmptyX(x, y0, y1 int) bool {
+	if x < 0 || x >= len(b.Cells[0]) {
+		return true
+	}
+	if y0 < 0 {
+		y0 = 0
+	}
+	if y1 > len(b.Cells) {
+		y1 = len(b.Cells)
+	}
+	for i := y0; i < y1; i++ {
+		c := b.Cells[i][x]
+		if c == CellShip || c == CellHit || c == CellDebris {
+			return false
+		}
+	}
+	return true
+}
+
 var htmlCellRep = map[Cell]string{
 	CellEmpty:  "__",
 	CellMiss:   "..",
-	CellShip:   "[]",
+	CellShadow: "~~",
+	CellShip:   "\\/",
 	CellHit:    "++",
 	CellDebris: "XX",
-	CellShadow: "~~",
 }
 
 func HtmlShowCell(c Cell) string {
