@@ -17,6 +17,10 @@ func NewPlayer(size int) *Player {
 	return p
 }
 
+func (p *Player) AddRandomShips() bool {
+  return p.self.AddRandomShips()
+}
+
 func (p *Player) HtmlShow() string {
 	out := &bytes.Buffer{}
 	fmt.Fprintf(out, "<table id=\"selfboard\">\n%s</table>\n",

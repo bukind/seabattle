@@ -142,7 +142,7 @@ func (b *Board) HtmlShow(active bool) string {
 
 func (b *Board) htmlShowCell(x, y int, active bool) string {
 	c := b.Cells[y][x]
-	if active && c != CellMiss && c != CellHit && c != CellDebris {
+	if active && c != CellMiss && c != CellHit && c != CellDebris && c != CellShadow {
 		return fmt.Sprintf("<a href=\"/hit?x=%d&y=%d\">%s</a>", x, y, htmlCellRep[c])
 	}
 	return htmlCellRep[c]

@@ -12,19 +12,15 @@ import (
 	"time"
 )
 
-type Game struct {
-	self *seabattle.Board
-	peer *seabattle.Board
-}
-
-var game Game
+var self *seabattle.Player
+var peer *seabattle.Player
 
 func start(ctx *web.Context) string {
 
-	game.self = seabattle.NewBoard(10)
-	game.peer = seabattle.NewBoard(10)
+	self = seabattle.NewPlayer(10)
+	peer = seabattle.NewPlayer(10)
 
-	if !game.self.AddRandomShips() || !game.peer.AddRandomShips() {
+	if !self.AddRandomShips() || !peer.AddRandomShips() {
 		return "Cannot place ships"
 	}
 
@@ -32,11 +28,11 @@ func start(ctx *web.Context) string {
 }
 
 func hit(ctx *web.Context) string {
-	if game.self == nil {
+	if self == nil {
 		return start(ctx)
 	}
 	var msg string
-	for {
+	for firstpass := true; firstpass; firstpass = false {
 		var err error
 		x, err := getInt(ctx, "x")
 		if err != nil {
@@ -49,7 +45,10 @@ func hit(ctx *web.Context) string {
 			break
 		}
 
-		switch game.peer.Hit(x, y) {
+		result := peer.Hit(x, y)
+		self.ApplyResult(x, y, result)
+
+		switch result {
 		case seabattle.ResultOut:
 			msg = fmt.Sprintf("Invalid position (%d,%d), please strike again", x, y)
 		case seabattle.ResultHitAgain:
@@ -76,11 +75,9 @@ func showState(ctx *web.Context, msg string) string {
 	fmt.Fprintf(out, "<meta charset=\"UTF-8\"/>\n")
 	fmt.Fprintf(out, "<title>Some title</title>\n</head>\n")
 	fmt.Fprintf(out, "<body>\n")
+	fmt.Fprintf(out, "<a href=\"/\">[ restart ]</a>\n")
 	fmt.Fprintf(out, "<h2>%s</h2>\n", msg)
-	fmt.Fprintf(out, "<table id=\"selfboard\">\n")
-	fmt.Fprintf(out, "%s</table>\n", game.self.HtmlShow(false))
-	fmt.Fprintf(out, "<table id=\"peerboard\">\n")
-	fmt.Fprintf(out, "%s</table>\n", game.peer.HtmlShow(true))
+	out.WriteString(self.HtmlShow())
 	fmt.Fprintf(out, "</body>\n")
 	fmt.Fprintf(out, "</html>\n")
 	return out.String()
