@@ -202,7 +202,6 @@ func (b *Board) Hit(x, y int) Result {
 	if x0 < 0 || x1 < 0 || y0 < 0 || y1 < 0 {
 		return ResultHit
 	}
-	fmt.Printf("ship sunk: x0,y0,x1,y1:%d,%d,%d,%d\n", x0, y0, x1, y1)
 	for i := x0; i <= x1; i++ {
 		b.Cells[y][i] = CellDebris
 	}

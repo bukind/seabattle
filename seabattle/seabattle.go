@@ -28,7 +28,7 @@ func start(ctx *web.Context) string {
 		return "Cannot place ships"
 	}
 
-	return showState(ctx, "")
+	return showState(ctx, "Started.")
 }
 
 func hit(ctx *web.Context) string {
