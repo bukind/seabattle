@@ -6,27 +6,6 @@ import (
 	"math/rand"
 )
 
-const (
-	CellEmpty = iota
-	CellMiss
-	CellShip
-	CellHit
-	CellDebris
-)
-
-const (
-	ResultOut      = iota // out of bounds
-	ResultHitAgain        // hit the cell already hit
-	ResultMiss
-	ResultHit
-	ResultKill
-	ResultWon
-)
-
-type Cell int
-
-type Result int
-
 type Row []Cell
 
 type Board struct {
@@ -135,14 +114,6 @@ func (b *Board) isCellsEmptyX(x, y0, y1 int) bool {
 	return true
 }
 
-var htmlCellRep = map[Cell]string{
-	CellEmpty:  "__",
-	CellMiss:   "..",
-	CellShip:   "\\/",
-	CellHit:    "++",
-	CellDebris: "xx",
-}
-
 func (b *Board) HtmlShow(active bool) string {
 	out := &bytes.Buffer{}
 	size := len(b.Cells)
@@ -187,7 +158,7 @@ func (b *Board) Hit(x, y int) Result {
 	case CellEmpty:
 		b.Cells[y][x] = CellMiss
 		return ResultMiss
-	case CellMiss, CellHit, CellDebris:
+	case CellMiss, CellHit, CellDebris, CellShadow:
 		return ResultHitAgain
 	case CellShip:
 		break
@@ -195,18 +166,10 @@ func (b *Board) Hit(x, y int) Result {
 		panic("Something is wrong - bad cell")
 	}
 	b.Cells[y][x] = CellHit
-	x0 := b.isCellShipX(x, y, -1)
-	x1 := b.isCellShipX(x, y, 1)
-	y0 := b.isCellShipY(x, y, -1)
-	y1 := b.isCellShipY(x, y, 1)
-	if x0 < 0 || x1 < 0 || y0 < 0 || y1 < 0 {
+	if sunk := b.isShipSunk(x, y); sunk == nil {
 		return ResultHit
-	}
-	for i := x0; i <= x1; i++ {
-		b.Cells[y][i] = CellDebris
-	}
-	for i := y0; i <= y1; i++ {
-		b.Cells[i][x] = CellDebris
+	} else {
+		b.markShipSunk(x, y, sunk, false)
 	}
 	for _, row := range b.Cells {
 		for _, cell := range row {
@@ -215,7 +178,61 @@ func (b *Board) Hit(x, y int) Result {
 			}
 		}
 	}
-	return ResultWon
+	return ResultGameOver
+}
+
+func (b *Board) isShipSunk(x, y int) *Rect {
+	x0 := b.isCellShipX(x, y, -1)
+	x1 := b.isCellShipX(x, y, 1)
+	y0 := b.isCellShipY(x, y, -1)
+	y1 := b.isCellShipY(x, y, 1)
+	if x0 < 0 || x1 < 0 || y0 < 0 || y1 < 0 {
+		return nil
+	}
+	return &Rect{x0, y0, x1, y1}
+}
+
+func (b *Board) markShipSunk(x, y int, r *Rect, makeShadow bool) {
+	for i := r.x0; i <= r.x1; i++ {
+		b.Cells[y][i] = CellDebris
+	}
+	for i := r.y0; i <= r.y1; i++ {
+		b.Cells[i][x] = CellDebris
+	}
+	if makeShadow {
+		ym := r.y0 - 1
+		yp := r.y1 + 1
+		if ym < 0 {
+			ym = yp
+		}
+		if yp >= len(b.Cells) {
+			yp = ym
+		}
+		for i := r.x0; i <= r.x1; i++ {
+			if b.Cells[ym][i] == CellEmpty {
+				b.Cells[ym][i] = CellShadow
+			}
+			if b.Cells[yp][i] == CellEmpty {
+				b.Cells[yp][i] = CellShadow
+			}
+		}
+		xm := r.x0 - 1
+		xp := r.x1 + 1
+		if xm < 0 {
+			xm = xp
+		}
+		if xp >= len(b.Cells[0]) {
+			xp = xm
+		}
+		for i := r.y0; i <= r.y1; i++ {
+			if b.Cells[i][xm] == CellEmpty {
+				b.Cells[i][xm] = CellShadow
+			}
+			if b.Cells[i][xp] == CellEmpty {
+				b.Cells[i][xp] = CellShadow
+			}
+		}
+	}
 }
 
 func (b *Board) isCellShipX(x, y, inc int) int {
@@ -249,5 +266,26 @@ func (b *Board) isCellShipY(x, y, inc int) int {
 			return y
 		}
 		y = i
+	}
+}
+
+func (b *Board) ApplyResult(x, y int, res Result) {
+	switch res {
+	case ResultOut, ResultHitAgain:
+		// do nothing
+	case ResultMiss:
+		b.Cells[y][x] = CellMiss
+	case ResultHit:
+		b.Cells[y][x] = CellHit
+	case ResultKill, ResultGameOver:
+		b.Cells[y][x] = CellHit
+		// TODO: replace with sunken ship rect
+		sunk := b.isShipSunk(x, y)
+		if sunk == nil {
+			panic("ship is not sunk")
+		}
+		b.markShipSunk(x, y, sunk, true)
+	default:
+		panic("unknown result - cannot apply")
 	}
 }

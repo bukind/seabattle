@@ -60,7 +60,7 @@ func hit(ctx *web.Context) string {
 			msg = fmt.Sprintf("You've just hit a target! Go on.")
 		case seabattle.ResultKill:
 			msg = fmt.Sprintf("The target sunk, find another...")
-		case seabattle.ResultWon:
+		case seabattle.ResultGameOver:
 			msg = fmt.Sprintf("YOU WON THE BATTLE.")
 		default:
 			panic("Unknown result of strike")
