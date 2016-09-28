@@ -12,10 +12,20 @@ const (
 	CellShip
 	CellHit
 	CellDebris
-	CellShadow
+)
+
+const (
+	ResultOut      = iota // out of bounds
+	ResultHitAgain        // hit the cell already hit
+	ResultMiss
+	ResultHit
+	ResultKill
+	ResultWon
 )
 
 type Cell int
+
+type Result int
 
 type Row []Cell
 
@@ -128,17 +138,12 @@ func (b *Board) isCellsEmptyX(x, y0, y1 int) bool {
 var htmlCellRep = map[Cell]string{
 	CellEmpty:  "__",
 	CellMiss:   "..",
-	CellShadow: "~~",
 	CellShip:   "\\/",
 	CellHit:    "++",
-	CellDebris: "XX",
+	CellDebris: "xx",
 }
 
-func HtmlShowCell(c Cell) string {
-	return htmlCellRep[c]
-}
-
-func (b *Board) HtmlShow() string {
+func (b *Board) HtmlShow(active bool) string {
 	out := &bytes.Buffer{}
 	size := len(b.Cells)
 	for i := 0; i < size+2; i++ {
@@ -152,16 +157,98 @@ func (b *Board) HtmlShow() string {
 			out.WriteString("<th></th>")
 		} else {
 			idx := size - i
-			row := b.Cells[idx]
 			fmt.Fprintf(out, "<th>%d</th>", idx+1)
 			for j := 1; j < size+1; j++ {
-				cell := row[j-1]
 				fmt.Fprintf(out, "<td id=\"%c%d\">%s</td>",
-					'A'+j-1, idx+1, HtmlShowCell(cell))
+					'A'+j-1, idx+1, b.htmlShowCell(j-1, idx, active))
 			}
 			fmt.Fprintf(out, "<th>%d</th>", idx+1)
 		}
 		out.WriteString("\n</tr>\n")
 	}
 	return out.String()
+}
+
+func (b *Board) htmlShowCell(x, y int, active bool) string {
+	c := b.Cells[y][x]
+	if active && c != CellMiss && c != CellHit && c != CellDebris {
+		return fmt.Sprintf("<a href=\"/hit?x=%d&y=%d\">%s</a>", x, y, htmlCellRep[c])
+	}
+	return htmlCellRep[c]
+}
+
+func (b *Board) Hit(x, y int) Result {
+	if x < 0 || x >= len(b.Cells[0]) ||
+		y < 0 || y >= len(b.Cells) {
+		return ResultOut
+	}
+	c := b.Cells[y][x]
+	switch c {
+	case CellEmpty:
+		b.Cells[y][x] = CellMiss
+		return ResultMiss
+	case CellMiss, CellHit, CellDebris:
+		return ResultHitAgain
+	case CellShip:
+		break
+	default:
+		panic("Something is wrong - bad cell")
+	}
+	b.Cells[y][x] = CellHit
+	x0 := b.isCellShipX(x, y, -1)
+	x1 := b.isCellShipX(x, y, 1)
+	y0 := b.isCellShipY(x, y, -1)
+	y1 := b.isCellShipY(x, y, 1)
+	if x0 < 0 || x1 < 0 || y0 < 0 || y1 < 0 {
+		return ResultHit
+	}
+	fmt.Printf("ship sunk: x0,y0,x1,y1:%d,%d,%d,%d\n", x0, y0, x1, y1)
+	for i := x0; i <= x1; i++ {
+		b.Cells[y][i] = CellDebris
+	}
+	for i := y0; i <= y1; i++ {
+		b.Cells[i][x] = CellDebris
+	}
+	for _, row := range b.Cells {
+		for _, cell := range row {
+			if cell == CellShip {
+				return ResultKill
+			}
+		}
+	}
+	return ResultWon
+}
+
+func (b *Board) isCellShipX(x, y, inc int) int {
+	for {
+		i := x + inc
+		if i < 0 || i >= len(b.Cells[0]) {
+			return x
+		}
+		c := b.Cells[y][i]
+		if c == CellShip {
+			return -1
+		}
+		if c != CellHit {
+			return x
+		}
+		x = i
+	}
+}
+
+func (b *Board) isCellShipY(x, y, inc int) int {
+	for {
+		i := y + inc
+		if i < 0 || i >= len(b.Cells) {
+			return y
+		}
+		c := b.Cells[i][x]
+		if c == CellShip {
+			return -1
+		}
+		if c != CellHit {
+			return y
+		}
+		y = i
+	}
 }
