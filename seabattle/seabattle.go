@@ -103,6 +103,7 @@ func showState(ctx *web.Context, msgs []string) string {
 	out := &bytes.Buffer{}
 	out.WriteString("<!DOCTYPE html>\n<html>\n<head>\n")
 	out.WriteString("<meta charset=\"UTF-8\"/>\n")
+	out.WriteString("<link rel=\"stylesheet\" href=\"style.css\"/>\n")
 	out.WriteString("<title>Some title</title>\n</head>\n")
 	out.WriteString("<body>\n")
 	out.WriteString("<a href=\"/\">[ restart ]</a>\n")
