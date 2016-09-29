@@ -1,5 +1,9 @@
 package seabattle
 
+import (
+	"fmt"
+)
+
 const (
 	CellEmpty = iota
 	CellMiss
@@ -18,4 +22,8 @@ var htmlCellRep = map[Cell]string{
 	CellHit:    "++",
 	CellDebris: "xx",
 	CellShadow: "~~",
+}
+
+func CellToStr(x, y int) string {
+	return fmt.Sprintf("%c%d", 'A'+x, y+1)
 }

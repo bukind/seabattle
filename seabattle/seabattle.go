@@ -70,10 +70,29 @@ func hit(ctx *web.Context) string {
 
 		msgs = append(msgs, msg)
 
-		// TODO: impl retaliation
-		for ; peerTurn; {
-			peerTurn = false
-		  msgs = append(msgs, "TODO: peer turn")
+		for peerTurn {
+			x, y = peer.FindHit()
+			result = self.Hit(x, y)
+			peer.ApplyResult(x, y, result)
+			msg = ""
+			switch result {
+			case seabattle.ResultOut, seabattle.ResultHitAgain:
+				// hit again
+			case seabattle.ResultMiss:
+				msg = "It missed."
+				peerTurn = false
+			case seabattle.ResultHit:
+				msg = "Your ship is damaged!"
+			case seabattle.ResultKill:
+				msg = "Your ship is destroyed!!"
+			case seabattle.ResultGameOver:
+				msg = "YOU'VE LOST THE BATTLE."
+				peerTurn = false
+			}
+			if len(msg) > 0 {
+				msgs = append(msgs,
+					fmt.Sprintf("Peer strikes %s. ", seabattle.CellToStr(x, y))+msg)
+			}
 		}
 
 	}
