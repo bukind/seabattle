@@ -117,35 +117,28 @@ func (b *Board) isCellsEmptyX(x, y0, y1 int) bool {
 func (b *Board) HtmlShow(active bool) string {
 	out := &bytes.Buffer{}
 	size := len(b.Cells)
-	for i := 0; i < size+2; i++ {
+	for y := size; y >= -1; y-- {
 		out.WriteString("<tr>\n")
-		if i < 1 || i > size {
+		if y < 0 || y >= size {
 			// create a row of letters
 			out.WriteString("<th></th>")
-			for j := 1; j < size+1; j++ {
-				fmt.Fprintf(out, "<th>%c</th>", 'A'+j-1)
+			for x := 0; x < size; x++ {
+				fmt.Fprintf(out, "<th>%c</th>", 'A'+x)
 			}
 			out.WriteString("<th></th>")
 		} else {
-			idx := size - i
-			fmt.Fprintf(out, "<th>%d</th>", idx+1)
-			for j := 1; j < size+1; j++ {
-				fmt.Fprintf(out, "<td id=\"%c%d\">%s</td>",
-					'A'+j-1, idx+1, b.htmlShowCell(j-1, idx, active))
+			fmt.Fprintf(out, "<th>%d</th>", y+1)
+			for x := 0; x < size; x++ {
+				c := b.Cells[y][x]
+				fmt.Fprintf(out, "<td id=\"%c%d\" class=\"%s\">%s</td>",
+					'A'+x, y+1, c.htmlClass(),
+					c.htmlShow(x, y, active))
 			}
-			fmt.Fprintf(out, "<th>%d</th>", idx+1)
+			fmt.Fprintf(out, "<th>%d</th>", y+1)
 		}
 		out.WriteString("\n</tr>\n")
 	}
 	return out.String()
-}
-
-func (b *Board) htmlShowCell(x, y int, active bool) string {
-	c := b.Cells[y][x]
-	if active && c != CellMiss && c != CellHit && c != CellDebris && c != CellShadow {
-		return fmt.Sprintf("<a href=\"/hit?x=%d&y=%d\">%s</a>", x, y, htmlCellRep[c])
-	}
-	return htmlCellRep[c]
 }
 
 func (b *Board) Hit(x, y int) Result {

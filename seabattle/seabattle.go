@@ -91,7 +91,7 @@ func hit(ctx *web.Context) string {
 			}
 			if len(msg) > 0 {
 				msgs = append(msgs,
-					fmt.Sprintf("Peer strikes %s. ", seabattle.CellToStr(x, y))+msg)
+					fmt.Sprintf("Peer strikes %s. ", seabattle.PosToStr(x, y))+msg)
 			}
 		}
 
@@ -107,7 +107,9 @@ func showState(ctx *web.Context, msgs []string) string {
 	out.WriteString("<title>Some title</title>\n</head>\n")
 	out.WriteString("<body>\n")
 	out.WriteString("<a href=\"/\">[ restart ]</a>\n")
+	out.WriteString("<div id=\"boards\">\n")
 	out.WriteString(self.HtmlShow())
+	out.WriteString("</div>\n")
 	out.WriteString("<ul id=\"messages\">\n")
 	for _, msg := range msgs {
 		fmt.Fprintf(out, "<li>%s</li>\n", msg)
