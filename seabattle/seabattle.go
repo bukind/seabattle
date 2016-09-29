@@ -24,30 +24,32 @@ func start(ctx *web.Context) string {
 		return "Cannot place ships"
 	}
 
-	return showState(ctx, "Started.")
+	return showState(ctx, []string{"Started."})
 }
 
 func hit(ctx *web.Context) string {
 	if self == nil {
 		return start(ctx)
 	}
-	var msg string
+	var msgs []string
 	for firstpass := true; firstpass; firstpass = false {
 		var err error
 		x, err := getInt(ctx, "x")
 		if err != nil {
-			msg = err.Error()
+			msgs = append(msgs, err.Error())
 			break
 		}
 		y, err := getInt(ctx, "y")
 		if err != nil {
-			msg = err.Error()
+			msgs = append(msgs, err.Error())
 			break
 		}
 
 		result := peer.Hit(x, y)
 		self.ApplyResult(x, y, result)
 
+		peerTurn := false
+		var msg string
 		switch result {
 		case seabattle.ResultOut:
 			msg = fmt.Sprintf("Invalid position (%d,%d), please strike again", x, y)
@@ -55,6 +57,7 @@ func hit(ctx *web.Context) string {
 			msg = fmt.Sprintf("You've strike this cell already, please strike again")
 		case seabattle.ResultMiss:
 			msg = fmt.Sprintf("You've missed :(")
+			peerTurn = true
 		case seabattle.ResultHit:
 			msg = fmt.Sprintf("You've just hit a target! Go on.")
 		case seabattle.ResultKill:
@@ -64,22 +67,34 @@ func hit(ctx *web.Context) string {
 		default:
 			panic("Unknown result of strike")
 		}
-		break
+
+		msgs = append(msgs, msg)
+
+		// TODO: impl retaliation
+		for ; peerTurn; {
+			peerTurn = false
+		  msgs = append(msgs, "TODO: peer turn")
+		}
+
 	}
-	return showState(ctx, msg)
+	return showState(ctx, msgs)
 }
 
-func showState(ctx *web.Context, msg string) string {
+func showState(ctx *web.Context, msgs []string) string {
 	out := &bytes.Buffer{}
-	fmt.Fprintf(out, "<!DOCTYPE html>\n<html>\n<head>\n")
-	fmt.Fprintf(out, "<meta charset=\"UTF-8\"/>\n")
-	fmt.Fprintf(out, "<title>Some title</title>\n</head>\n")
-	fmt.Fprintf(out, "<body>\n")
-	fmt.Fprintf(out, "<a href=\"/\">[ restart ]</a>\n")
-	fmt.Fprintf(out, "<h2>%s</h2>\n", msg)
+	out.WriteString("<!DOCTYPE html>\n<html>\n<head>\n")
+	out.WriteString("<meta charset=\"UTF-8\"/>\n")
+	out.WriteString("<title>Some title</title>\n</head>\n")
+	out.WriteString("<body>\n")
+	out.WriteString("<a href=\"/\">[ restart ]</a>\n")
 	out.WriteString(self.HtmlShow())
-	fmt.Fprintf(out, "</body>\n")
-	fmt.Fprintf(out, "</html>\n")
+	out.WriteString("<ul id=\"messages\">\n")
+	for _, msg := range msgs {
+		fmt.Fprintf(out, "<li>%s</li>\n", msg)
+	}
+	out.WriteString("</ul>\n")
+	out.WriteString("</body>\n")
+	out.WriteString("</html>\n")
 	return out.String()
 }
 
