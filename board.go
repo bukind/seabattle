@@ -14,6 +14,11 @@ type Board struct {
 
 func NewBoard(size int) *Board {
 	b := new(Board)
+	b.Init(size)
+	return b
+}
+
+func (b *Board) Init(size int) {
 	b.Cells = make([]Row, size)
 	for i := 0; i < size; i++ {
 		row := make(Row, size)
@@ -22,7 +27,6 @@ func NewBoard(size int) *Board {
 			row[j] = CellEmpty
 		}
 	}
-	return b
 }
 
 func (b *Board) AddRandomShips() bool {

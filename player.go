@@ -3,13 +3,18 @@ package seabattle
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
 )
 
+type Pos struct {
+	x int
+	y int
+}
+
 type Player struct {
-	self   *Board
-	peer   *Board
-	ingame bool
+	self    *Board
+	peer    *Board
+	ingame  bool
+	lasthit *Pos
 }
 
 func NewPlayer(size int) *Player {
@@ -43,20 +48,13 @@ func (p *Player) Hit(x, y int) Result {
 
 func (p *Player) ApplyResult(x, y int, res Result) {
 	p.peer.ApplyResult(x, y, res)
-	if res == ResultGameOver {
+	switch res {
+	case ResultHit:
+		p.lasthit = &Pos{x, y}
+	case ResultKill:
+		p.lasthit = nil
+	case ResultGameOver:
+		p.lasthit = nil
 		p.ingame = false
 	}
-}
-
-func (p *Player) FindHit() (int, int) {
-	const attempts = 50
-	var x, y int
-	for i := 0; i < attempts; i++ {
-		x = rand.Intn(len(p.peer.Cells[0]))
-		y = rand.Intn(len(p.peer.Cells))
-		if p.peer.Cells[y][x] == CellEmpty {
-			break
-		}
-	}
-	return x, y
 }

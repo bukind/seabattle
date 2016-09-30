@@ -14,13 +14,13 @@ import (
 
 var self *seabattle.Player
 var peer *seabattle.Player
-var ai *seabattle.AI
+var ai seabattle.AI
 
 func start(ctx *web.Context) string {
 
 	self = seabattle.NewPlayer(10)
 	peer = seabattle.NewPlayer(10)
-	ai = &seabattle.SimpleAI{peer}
+	ai = seabattle.SimpleAI(peer)
 
 	if !self.AddRandomShips() || !peer.AddRandomShips() {
 		return "Cannot place ships"
