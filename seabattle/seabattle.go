@@ -14,11 +14,13 @@ import (
 
 var self *seabattle.Player
 var peer *seabattle.Player
+var ai *seabattle.AI
 
 func start(ctx *web.Context) string {
 
 	self = seabattle.NewPlayer(10)
 	peer = seabattle.NewPlayer(10)
+	ai = &seabattle.SimpleAI{peer}
 
 	if !self.AddRandomShips() || !peer.AddRandomShips() {
 		return "Cannot place ships"
@@ -71,7 +73,7 @@ func hit(ctx *web.Context) string {
 		msgs = append(msgs, msg)
 
 		for peerTurn {
-			x, y = peer.FindHit()
+			x, y = ai.FindHit()
 			result = self.Hit(x, y)
 			peer.ApplyResult(x, y, result)
 			msg = ""
