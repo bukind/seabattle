@@ -26,7 +26,7 @@ func NewBoard(size int) *Board {
 }
 
 func (b *Board) AddRandomShips() bool {
-	const maxshipsize = 4
+	const maxshipsize = 5
 	const maxattempt = 50
 	num := 1
 	for s := maxshipsize; s > 0; s-- {
