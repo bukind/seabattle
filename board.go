@@ -12,7 +12,7 @@ type Board struct {
 	Cells []Row
 }
 
-func NewBoard(size int) *Board {
+func NewBoard(size int, isPeer bool) *Board {
 	b := new(Board)
 	b.Init(size)
 	return b
@@ -20,11 +20,16 @@ func NewBoard(size int) *Board {
 
 func (b *Board) Init(size int) {
 	b.Cells = make([]Row, size)
+	cellType := CellEmpty
+	if isPeer {
+	  cellType = CellMistery
+	}
+	cellProto := Cell(cellType)
 	for i := 0; i < size; i++ {
 		row := make(Row, size)
 		b.Cells[i] = row
 		for j := 0; j < size; j++ {
-			row[j] = CellEmpty
+			row[j] = cellProto
 		}
 	}
 }
@@ -121,6 +126,10 @@ func (b *Board) isCellsEmptyX(x, y0, y1 int) bool {
 func (b *Board) HtmlShow(active bool) string {
 	out := &bytes.Buffer{}
 	size := len(b.Cells)
+	cid := "s"
+	if active {
+		cid = "p"
+	}
 	for y := size; y >= -1; y-- {
 		out.WriteString("<tr>\n")
 		if y < 0 || y >= size {
@@ -134,8 +143,8 @@ func (b *Board) HtmlShow(active bool) string {
 			fmt.Fprintf(out, "<th>%d</th>", y+1)
 			for x := 0; x < size; x++ {
 				c := b.Cells[y][x]
-				fmt.Fprintf(out, "<td id=\"%c%d\" class=\"%s\">%s</td>",
-					'A'+x, y+1, c.htmlClass(),
+				fmt.Fprintf(out, "<td id=\"%s%s\" class=\"%s\">%s</td>",
+					cid, PosToStr(x,y), c.htmlClass(),
 					c.htmlShow(x, y, active))
 			}
 			fmt.Fprintf(out, "<th>%d</th>", y+1)
@@ -145,6 +154,7 @@ func (b *Board) HtmlShow(active bool) string {
 	return out.String()
 }
 
+// A peer hits the board.
 func (b *Board) Hit(x, y int) Result {
 	if x < 0 || x >= len(b.Cells[0]) ||
 		y < 0 || y >= len(b.Cells) {
@@ -206,10 +216,10 @@ func (b *Board) markShipSunk(x, y int, r *Rect, makeShadow bool) {
 			yp = ym
 		}
 		for i := r.x0; i <= r.x1; i++ {
-			if b.Cells[ym][i] == CellEmpty {
+			if b.Cells[ym][i] == CellEmpty || b.Cells[ym][i] == CellMistery {
 				b.Cells[ym][i] = CellShadow
 			}
-			if b.Cells[yp][i] == CellEmpty {
+			if b.Cells[yp][i] == CellEmpty || b.Cells[yp][i] == CellMistery {
 				b.Cells[yp][i] = CellShadow
 			}
 		}
@@ -222,10 +232,10 @@ func (b *Board) markShipSunk(x, y int, r *Rect, makeShadow bool) {
 			xp = xm
 		}
 		for i := r.y0; i <= r.y1; i++ {
-			if b.Cells[i][xm] == CellEmpty {
+			if b.Cells[i][xm] == CellEmpty || b.Cells[i][xm] == CellMistery {
 				b.Cells[i][xm] = CellShadow
 			}
-			if b.Cells[i][xp] == CellEmpty {
+			if b.Cells[i][xp] == CellEmpty || b.Cells[i][xp] == CellMistery {
 				b.Cells[i][xp] = CellShadow
 			}
 		}
@@ -276,7 +286,6 @@ func (b *Board) ApplyResult(x, y int, res Result) {
 		b.Cells[y][x] = CellHit
 	case ResultKill, ResultGameOver:
 		b.Cells[y][x] = CellHit
-		// TODO: replace with sunken ship rect
 		sunk := b.isShipSunk(x, y)
 		if sunk == nil {
 			panic("ship is not sunk")

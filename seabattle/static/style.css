@@ -30,3 +30,6 @@ td.shadow {
 td.ship {
   background-color: green;
 }
+td.undercursor {
+  background-color: #0000ff;
+}

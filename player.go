@@ -19,8 +19,8 @@ type Player struct {
 
 func NewPlayer(size int) *Player {
 	p := new(Player)
-	p.self = NewBoard(size)
-	p.peer = NewBoard(size)
+	p.self = NewBoard(size, false)
+	p.peer = NewBoard(size, true)
 	p.ingame = true
 	return p
 }
@@ -57,4 +57,18 @@ func (p *Player) ApplyResult(x, y int, res Result) {
 		p.lasthit = nil
 		p.ingame = false
 	}
+}
+
+// Find a place where to hit.
+func (p *Player) FindHit() (int, int) {
+	const attempts = 50
+	var x, y int
+	for i := 0; i < attempts; i++ {
+		x = rand.Intn(len(p.peer.Cells[0]))
+		y = rand.Intn(len(p.peer.Cells))
+		if p.peer.Cells[y][x] == CellMistery {
+			break
+		}
+	}
+	return x, y
 }
