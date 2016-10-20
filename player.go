@@ -3,6 +3,7 @@ package seabattle
 import (
 	"bytes"
 	"fmt"
+	"math/rand"
 )
 
 type Pos struct {

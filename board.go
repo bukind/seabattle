@@ -14,11 +14,11 @@ type Board struct {
 
 func NewBoard(size int, isPeer bool) *Board {
 	b := new(Board)
-	b.Init(size)
+	b.init(size, isPeer)
 	return b
 }
 
-func (b *Board) Init(size int) {
+func (b *Board) init(size int, isPeer bool) {
 	b.Cells = make([]Row, size)
 	cellType := CellEmpty
 	if isPeer {

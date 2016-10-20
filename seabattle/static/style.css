@@ -33,3 +33,6 @@ td.ship {
 td.undercursor {
   background-color: #0000ff;
 }
+td > a {
+  text-decoration: none;
+}
