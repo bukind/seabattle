@@ -295,3 +295,41 @@ func (b *Board) ApplyResult(x, y int, res Result) {
 		panic("unknown result - cannot apply")
 	}
 }
+
+// GetCellMisteryX gets the nearest Mistery place along X axis.
+// The search starts at (x,y) and moves with step inc.
+// Cells with CellHit values are skipped.
+func (b *Board) GetCellMisteryX(x, y, inc int) int {
+  for {
+	  i := x + inc
+		if i < 0 || i > len(b.Cells[0]) {
+		  return -1
+		}
+		c := b.Cells[i][y]
+		if c == CellMistery {
+		  return i
+		}
+		if c != CellHit {
+		  return -1
+		}
+		x = i
+	}
+}
+
+// GetCellMisteryY gets the nearest Mistery place along Y axis.
+func (b *Board) GetCellMisteryY(x, y, inc int) int {
+  for {
+	  i := y + inc
+		if i < 0 || i > len(b.Cells) {
+		  return -1
+		}
+		c := b.Cells[x][i]
+		if c == CellMistery {
+		  return i
+		}
+		if c != CellHit {
+		  return -1
+		}
+		y = i
+	}
+}

@@ -64,6 +64,22 @@ func (p *Player) ApplyResult(x, y int, res Result) {
 func (p *Player) FindHit() (int, int) {
 	const attempts = 50
 	var x, y int
+	if p.lasthit != nil {
+	  x = p.lasthit.x
+		y = p.lasthit.y
+		for d := -1; d < 2; d += 2 {
+			x0 := p.peer.GetCellMisteryX(x, y, d)
+			if x0 != -1 {
+				return x0, y
+			}
+		}
+		for d := -1; d < 2; d += 2 {
+			y0 := p.peer.GetCellMisteryY(x, y, d)
+			if y0 != -1 {
+				return x, y0
+			}
+		}
+	}
 	for i := 0; i < attempts; i++ {
 		x = rand.Intn(len(p.peer.Cells[0]))
 		y = rand.Intn(len(p.peer.Cells))
