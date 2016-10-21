@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<link rel="stylesheet" href="style.css"/>
+<script src="script.js?v=4"></script>
+<title>Some title</title>
+</head>
+<body onload="onBodyLoaded();">
+<a href="/">[ restart ]</a>
+<div id="boards">
+{{.Boards}}
+</div>
+<ul id="messages">
+{{range .Msgs}}
+  <li>{{.}}</li>
+{{end}}
+</ul>
+</body>
+</html>

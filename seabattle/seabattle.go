@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/bukind/seabattle"
 	"github.com/hoisie/web"
+	"text/template"
+	"io"
 	// "log"
-	// "os"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 )
@@ -26,7 +28,7 @@ func start(ctx *web.Context) string {
 		return "Cannot place ships"
 	}
 
-	return showState(ctx, []string{"Started."})
+	return showState(ctx, []string{"Started <b>OR STARTED</b>."})
 }
 
 func hit(ctx *web.Context) string {
@@ -102,24 +104,32 @@ func hit(ctx *web.Context) string {
 }
 
 func showState(ctx *web.Context, msgs []string) string {
-	out := &bytes.Buffer{}
-	out.WriteString("<!DOCTYPE html>\n<html>\n<head>\n")
-	out.WriteString("<meta charset=\"UTF-8\"/>\n")
-	out.WriteString("<link rel=\"stylesheet\" href=\"style.css\"/>\n")
-	out.WriteString("<script src=\"script.js\"></script>\n")
-	out.WriteString("<title>Some title</title>\n</head>\n")
-	out.WriteString("<body onload=\"onBodyLoaded();\">\n")
-	out.WriteString("<a href=\"/\">[ restart ]</a>\n")
-	out.WriteString("<div id=\"boards\">\n")
-	out.WriteString(self.HtmlShow())
-	out.WriteString("</div>\n")
-	out.WriteString("<ul id=\"messages\">\n")
-	for _, msg := range msgs {
-		fmt.Fprintf(out, "<li>%s</li>\n", msg)
+	var err error
+	f, err := os.Open("main.tmpl")
+	if err != nil {
+	  panic("Failed to open template file: " + err.Error())
 	}
-	out.WriteString("</ul>\n")
-	out.WriteString("</body>\n")
-	out.WriteString("</html>\n")
+	defer f.Close()
+
+	buf := &bytes.Buffer{}
+	_, err = buf.ReadFrom(f)
+	if err != nil && err != io.EOF {
+		panic("Failed to read template file: " + err.Error())
+	}
+
+	t := template.New("main")
+	if t, err = t.Parse(buf.String()); err != nil {
+	  panic("Failed to parse template:" + err.Error())
+	}
+	type mainPage struct {
+	  Boards string
+		Msgs   []string
+	}
+	m := mainPage{ Boards: self.HtmlShow(), Msgs: msgs}
+	out := &bytes.Buffer{}
+	if err = t.Execute(out, m); err != nil {
+	  panic("Failed to execute template:" + err.Error())
+	}
 	return out.String()
 }
 

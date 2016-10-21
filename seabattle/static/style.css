@@ -35,4 +35,5 @@ td.undercursor {
 }
 td > a {
   text-decoration: none;
+  cursor: default;
 }
