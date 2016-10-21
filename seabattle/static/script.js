@@ -36,7 +36,7 @@ function setMisteryCell(mist) {
         msg += "</ul>";
         showMessage(msg);
       }
-      kids[i].setAttribute("x-href", kids[i].getAttribute("href"));
+      mist.setAttribute("to-href", kids[i].getAttribute("href"));
       kids[i].removeAttribute("href");
       mist.onclick = misteryCellOnClick;
       break;
@@ -46,6 +46,7 @@ function setMisteryCell(mist) {
 
 function misteryCellOnClick() {
   showMessage("cell " + this.id + " pressed");
+  window.location.replace(this.getAttribute("to-href"));
 }
 
 function misteryCellOn() {
