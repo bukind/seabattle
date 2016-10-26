@@ -82,6 +82,7 @@ func hit(ctx *web.Context) string {
 			switch result {
 			case seabattle.ResultOut, seabattle.ResultHitAgain:
 				// hit again
+				panic("cannot proceed!")
 			case seabattle.ResultMiss:
 				msg = "It missed."
 				peerTurn = false

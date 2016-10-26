@@ -35,6 +35,10 @@ func PosToStr(x, y int) string {
 	return fmt.Sprintf("%c%d", 'A'+x, y+1)
 }
 
+func (c Cell) String() string {
+	return htmlCellRep[c].class
+}
+
 func (c Cell) htmlClass() string {
 	return htmlCellRep[c].class
 }

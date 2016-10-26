@@ -306,6 +306,7 @@ func (b *Board) GetCellMisteryX(x, y, inc int) int {
 		  return -1
 		}
 		c := b.Cells[i][y]
+		out.Printf("cell @ %s is %v\n", PosToStr(x,y), c)
 		if c == CellMistery {
 		  return i
 		}

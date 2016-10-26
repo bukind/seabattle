@@ -26,6 +26,7 @@ func NewPlayer(size int) *Player {
 }
 
 func (p *Player) AddRandomShips() bool {
+	out.Println("ships placed")
 	return p.self.AddRandomShips()
 }
 
@@ -43,6 +44,7 @@ func (p *Player) Hit(x, y int) Result {
 	if res == ResultGameOver {
 		p.ingame = false
 	}
+	out.Printf("Hit(%s) => %v", PosToStr(x,y), res)
 	return res
 }
 

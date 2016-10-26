@@ -10,3 +10,16 @@ const (
 )
 
 type Result int
+
+var resRep = map[Result]string{
+	ResultOut: "out",
+	ResultHitAgain: "again",
+	ResultMiss: "miss",
+	ResultHit: "hit",
+	ResultKill: "kill",
+	ResultGameOver: "gameover",
+}
+
+func (r Result) String() string {
+	return resRep[r]
+}
