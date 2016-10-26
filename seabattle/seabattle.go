@@ -22,10 +22,10 @@ func start(ctx *web.Context) string {
 
 	self = seabattle.NewPlayer(10)
 	peer = seabattle.NewPlayer(10)
-	ai = seabattle.SimpleAI(peer)
+	ai = seabattle.TrackingAI(peer)
 
 	if !self.AddRandomShips() || !peer.AddRandomShips() {
-		return "Cannot place ships"
+		return "Cannot place ships, <a href=\"/\">[try again]</a>"
 	}
 
 	return showState(ctx, []string{"Started <b>OR STARTED</b>."})
