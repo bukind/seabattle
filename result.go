@@ -12,11 +12,11 @@ const (
 type Result int
 
 var resRep = map[Result]string{
-	ResultOut: "out",
+	ResultOut:      "out",
 	ResultHitAgain: "again",
-	ResultMiss: "miss",
-	ResultHit: "hit",
-	ResultKill: "kill",
+	ResultMiss:     "miss",
+	ResultHit:      "hit",
+	ResultKill:     "kill",
 	ResultGameOver: "gameover",
 }
 

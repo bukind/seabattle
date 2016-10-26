@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/bukind/seabattle"
 	"github.com/hoisie/web"
-	"text/template"
 	"io"
+	"text/template"
 	// "log"
 	"math/rand"
 	"os"
@@ -108,7 +108,7 @@ func showState(ctx *web.Context, msgs []string) string {
 	var err error
 	f, err := os.Open("main.tmpl")
 	if err != nil {
-	  panic("Failed to open template file: " + err.Error())
+		panic("Failed to open template file: " + err.Error())
 	}
 	defer f.Close()
 
@@ -120,16 +120,16 @@ func showState(ctx *web.Context, msgs []string) string {
 
 	t := template.New("main")
 	if t, err = t.Parse(buf.String()); err != nil {
-	  panic("Failed to parse template:" + err.Error())
+		panic("Failed to parse template:" + err.Error())
 	}
 	type mainPage struct {
-	  Boards string
+		Boards string
 		Msgs   []string
 	}
-	m := mainPage{ Boards: self.HtmlShow(), Msgs: msgs}
+	m := mainPage{Boards: self.HtmlShow(), Msgs: msgs}
 	out := &bytes.Buffer{}
 	if err = t.Execute(out, m); err != nil {
-	  panic("Failed to execute template:" + err.Error())
+		panic("Failed to execute template:" + err.Error())
 	}
 	return out.String()
 }

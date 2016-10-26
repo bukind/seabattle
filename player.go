@@ -46,7 +46,7 @@ func (p *Player) Hit(x, y int) Result {
 	if res == ResultGameOver {
 		p.ingame = false
 	}
-	out.Printf("%s.Hit(%d,%d/%s) => %v", p.name, x, y, PosToStr(x,y), res)
+	out.Printf("%s.Hit(%d,%d/%s) => %v", p.name, x, y, PosToStr(x, y), res)
 	return res
 }
 

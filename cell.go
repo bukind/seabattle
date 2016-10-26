@@ -22,13 +22,13 @@ type HtmlCellRep struct {
 }
 
 var htmlCellRep = map[Cell]HtmlCellRep{
-	CellEmpty:  HtmlCellRep{"empty", "  "},
-	CellMiss:   HtmlCellRep{"miss", ".."},
-	CellShip:   HtmlCellRep{"ship", "\\/"},
-	CellHit:    HtmlCellRep{"hit", "++"},
-	CellDebris: HtmlCellRep{"debris", "xx"},
-	CellShadow: HtmlCellRep{"shadow", "~~"},
-	CellMistery:HtmlCellRep{"mist", "__"},
+	CellEmpty:   HtmlCellRep{"empty", "  "},
+	CellMiss:    HtmlCellRep{"miss", ".."},
+	CellShip:    HtmlCellRep{"ship", "\\/"},
+	CellHit:     HtmlCellRep{"hit", "++"},
+	CellDebris:  HtmlCellRep{"debris", "xx"},
+	CellShadow:  HtmlCellRep{"shadow", "~~"},
+	CellMistery: HtmlCellRep{"mist", "__"},
 }
 
 func PosToStr(x, y int) string {

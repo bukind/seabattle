@@ -13,7 +13,7 @@ type simpleAI struct {
 }
 
 type trackingAI struct {
-  peer *Player
+	peer *Player
 }
 
 // ---
@@ -46,7 +46,7 @@ func (a *trackingAI) FindHit() (int, int) {
 	var x, y int
 	out.Printf("FindHit(lasthit=%v)\n", p.lasthit)
 	if p.lasthit != nil {
-	  x = p.lasthit.x
+		x = p.lasthit.x
 		y = p.lasthit.y
 		for d := -1; d < 2; d += 2 {
 			x0 := p.peer.GetCellMisteryX(x, y, d)

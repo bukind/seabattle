@@ -22,7 +22,7 @@ func (b *Board) init(size int, isPeer bool) {
 	b.Cells = make([]Row, size)
 	cellType := CellEmpty
 	if isPeer {
-	  cellType = CellMistery
+		cellType = CellMistery
 	}
 	cellProto := Cell(cellType)
 	for i := 0; i < size; i++ {
@@ -144,7 +144,7 @@ func (b *Board) HtmlShow(active bool) string {
 			for x := 0; x < size; x++ {
 				c := b.Cells[y][x]
 				fmt.Fprintf(buf, "<td id=\"%s%s\" class=\"%s\">%s</td>",
-					cid, PosToStr(x,y), c.htmlClass(),
+					cid, PosToStr(x, y), c.htmlClass(),
 					c.htmlShow(x, y, active))
 			}
 			fmt.Fprintf(buf, "<th>%d</th>", y+1)
@@ -300,18 +300,18 @@ func (b *Board) ApplyResult(x, y int, res Result) {
 // The search starts at (x,y) and moves with step inc.
 // Cells with CellHit values are skipped.
 func (b *Board) GetCellMisteryX(x, y, inc int) int {
-  for {
-	  i := x + inc
+	for {
+		i := x + inc
 		if i < 0 || i > len(b.Cells[0]) {
-		  return -1
+			return -1
 		}
 		c := b.Cells[y][i]
-		b.logCell(i,y)
+		b.logCell(i, y)
 		if c == CellMistery {
-		  return i
+			return i
 		}
 		if c != CellHit {
-		  return -1
+			return -1
 		}
 		x = i
 	}
@@ -319,23 +319,23 @@ func (b *Board) GetCellMisteryX(x, y, inc int) int {
 
 // GetCellMisteryY gets the nearest Mistery place along Y axis.
 func (b *Board) GetCellMisteryY(x, y, inc int) int {
-  for {
-	  i := y + inc
+	for {
+		i := y + inc
 		if i < 0 || i > len(b.Cells) {
-		  return -1
+			return -1
 		}
 		c := b.Cells[i][x]
-		b.logCell(x,i)
+		b.logCell(x, i)
 		if c == CellMistery {
-		  return i
+			return i
 		}
 		if c != CellHit {
-		  return -1
+			return -1
 		}
 		y = i
 	}
 }
 
 func (b *Board) logCell(x, y int) {
-	out.Printf("cell(%d,%d/%s) = %s\n", x, y, PosToStr(x,y), b.Cells[y][x])
+	out.Printf("cell(%d,%d/%s) = %s\n", x, y, PosToStr(x, y), b.Cells[y][x])
 }
