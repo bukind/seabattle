@@ -124,34 +124,34 @@ func (b *Board) isCellsEmptyX(x, y0, y1 int) bool {
 }
 
 func (b *Board) HtmlShow(active bool) string {
-	out := &bytes.Buffer{}
+	buf := &bytes.Buffer{}
 	size := len(b.Cells)
 	cid := "s"
 	if active {
 		cid = "p"
 	}
 	for y := size; y >= -1; y-- {
-		out.WriteString("<tr>\n")
+		buf.WriteString("<tr>\n")
 		if y < 0 || y >= size {
 			// create a row of letters
-			out.WriteString("<th></th>")
+			buf.WriteString("<th></th>")
 			for x := 0; x < size; x++ {
-				fmt.Fprintf(out, "<th>%c</th>", 'A'+x)
+				fmt.Fprintf(buf, "<th>%c</th>", 'A'+x)
 			}
-			out.WriteString("<th></th>")
+			buf.WriteString("<th></th>")
 		} else {
-			fmt.Fprintf(out, "<th>%d</th>", y+1)
+			fmt.Fprintf(buf, "<th>%d</th>", y+1)
 			for x := 0; x < size; x++ {
 				c := b.Cells[y][x]
-				fmt.Fprintf(out, "<td id=\"%s%s\" class=\"%s\">%s</td>",
+				fmt.Fprintf(buf, "<td id=\"%s%s\" class=\"%s\">%s</td>",
 					cid, PosToStr(x,y), c.htmlClass(),
 					c.htmlShow(x, y, active))
 			}
-			fmt.Fprintf(out, "<th>%d</th>", y+1)
+			fmt.Fprintf(buf, "<th>%d</th>", y+1)
 		}
-		out.WriteString("\n</tr>\n")
+		buf.WriteString("\n</tr>\n")
 	}
-	return out.String()
+	return buf.String()
 }
 
 // A peer hits the board.
@@ -305,8 +305,8 @@ func (b *Board) GetCellMisteryX(x, y, inc int) int {
 		if i < 0 || i > len(b.Cells[0]) {
 		  return -1
 		}
-		c := b.Cells[i][y]
-		out.Printf("cell @ %s is %v\n", PosToStr(x,y), c)
+		c := b.Cells[y][i]
+		b.logCell(i,y)
 		if c == CellMistery {
 		  return i
 		}
@@ -324,7 +324,8 @@ func (b *Board) GetCellMisteryY(x, y, inc int) int {
 		if i < 0 || i > len(b.Cells) {
 		  return -1
 		}
-		c := b.Cells[x][i]
+		c := b.Cells[i][x]
+		b.logCell(x,i)
 		if c == CellMistery {
 		  return i
 		}
@@ -333,4 +334,8 @@ func (b *Board) GetCellMisteryY(x, y, inc int) int {
 		}
 		y = i
 	}
+}
+
+func (b *Board) logCell(x, y int) {
+	out.Printf("cell(%d,%d/%s) = %s\n", x, y, PosToStr(x,y), b.Cells[y][x])
 }
