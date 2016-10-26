@@ -149,5 +149,7 @@ func main() {
 
 	web.Get("/", start)
 	web.Get("/hit", hit)
+	web.SetLogger(seabattle.Logger())
+
 	web.Run("0.0.0.0:9999")
 }
