@@ -54,7 +54,9 @@ func (p *Player) ApplyResult(x, y int, res Result) {
 	p.peer.ApplyResult(x, y, res)
 	switch res {
 	case ResultHit:
-		p.lasthit = &Pos{x, y}
+		if p.lasthit == nil {
+			p.lasthit = &Pos{x, y}
+		}
 	case ResultKill:
 		p.lasthit = nil
 	case ResultGameOver:
