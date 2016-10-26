@@ -20,8 +20,8 @@ var ai seabattle.AI
 
 func start(ctx *web.Context) string {
 
-	self = seabattle.NewPlayer(10)
-	peer = seabattle.NewPlayer(10)
+	self = seabattle.NewPlayer("self", 10)
+	peer = seabattle.NewPlayer("peer", 10)
 	ai = seabattle.TrackingAI(peer)
 
 	if !self.AddRandomShips() || !peer.AddRandomShips() {
