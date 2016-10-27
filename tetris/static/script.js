@@ -2,6 +2,7 @@
 
 // constants
 var tick = 0;
+var linecount = 0;
 var height = 30;
 var width = 16;
 var tickInterval = 100;
@@ -58,9 +59,14 @@ function showPiece(show) {
 
 // executed on the tick
 function onTick() {
+  var p;    // element counting ticks
+  var posy; // position on y of the falling block
+  var i;
+  var row;
+
   tick += 1;
 
-  var p = document.getElementById("tick");
+  p = document.getElementById("tick");
   p.innerHTML = tick.toString();
 
   if (falling === null) {
@@ -81,13 +87,13 @@ function onTick() {
   }
 
   // try to move a piece
-  var nextposy = falling.posy + 1;
-  if (nextposy < height) {
+  posy = falling.posy + 1;
+  if (posy < height) {
     // check if it hits the previous items ...
-    if (cells[nextposy][falling.posx] === 0) {
+    if (cells[posy][falling.posx] === 0) {
       // ... no, so move it.
       showPiece(false);
-      falling.posy = nextposy;
+      falling.posy = posy;
       showPiece(true);
       return;
     }
@@ -95,6 +101,36 @@ function onTick() {
 
   // ... yes, the falling piece hits the obstacle.
   // freeze it where it is now.
-  cells[falling.posy][falling.posx] = falling.color;
+  posy = falling.posy;
+  cells[posy][falling.posx] = falling.color;
   falling = null;
+
+  // check if the line is complete.
+  for (i = 0; i < width; i++) {
+    if (cells[posy][i] === 0) {
+      // not fully filled
+      return;
+    }
+  }
+
+  // the whole line is filled, cut it out
+  cells.splice(posy,1);
+  row = [];
+  for (i = 0; i < width; i++) {
+    row.push(0);
+  }
+  cells.unshift(row);
+
+  // redraw all elements above and including posy.
+  for (i = posy; i >= 0; i--) {
+    var j;
+    for (j = 0; j < width; j++) {
+      var td = document.getElementById(mkId(i,j));
+      td.className = colors[cells[i][j]];
+    }
+  }
+
+  // increment the linecount and show it.
+  linecount += 1;
+  document.getElementById("linecount").innerHTML = linecount.toString();
 }
