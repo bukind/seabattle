@@ -1,17 +1,13 @@
-div#well-holder {
-  text-align: center;
+.well-holder {
+  float: left;
 }
 
-table {
-  // display: inline-block;
-  // outline-width: 0px;
-  // border-collapse: collapse;
-  margin: auto;
+table.well {
   border: 1px none auto;
   background-color: lightblue;
 }
 
-td {
+.well td {
   width: 1em;
   height: 1em;
   background-color: powderblue;

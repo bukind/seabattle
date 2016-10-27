@@ -23,7 +23,7 @@ function onBodyLoaded() {
 
   // create a well
   well = document.getElementById("well-holder");
-  mesh += "<table id=\"well\">\n";
+  mesh += "<table id=\"well\" class=\"well\">\n";
   for (i = 0; i < height; i++) {
     mesh += "<tr>\n";
     for (j = 0; j < width; j++) {
