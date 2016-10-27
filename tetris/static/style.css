@@ -1,0 +1,26 @@
+div#well-holder {
+  text-align: center;
+}
+
+table {
+  // display: inline-block;
+  // outline-width: 0px;
+  // border-collapse: collapse;
+  margin: auto;
+  border: 1px none auto;
+  background-color: lightblue;
+}
+
+td {
+  width: 1em;
+  height: 1em;
+  background-color: powderblue;
+  text-align: center;
+  border: 1px none auto;
+}
+td.black {
+  background-color: black;
+}
+td.blue {
+  background-color: blue;
+}
