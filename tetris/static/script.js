@@ -4,11 +4,11 @@
 var tick = 0;
 var height = 30;
 var width = 16;
-var tickInterval = 500;
+var tickInterval = 100;
 var tickTimer = null;    // the timer to stop at the end of the game
 var falling = null;      // the current falling piece
 var cells = [];
-var colors = ["", "black", "green", "blue"];
+var colors = ["", "black", "red", "green", "blue"];
 
 // helper function to convert position (i,j) into the cell id.
 function mkId(i, j) {
@@ -65,14 +65,17 @@ function onTick() {
 
   if (falling === null) {
     // generate a new piece
-    var pos;
+    var pos, color;
     pos = Math.floor(Math.random() * width);
     if (cells[0][pos] != 0) {
       // this is already occupied, the well is full.
       window.clearInterval(tickTimer);
       return;
     }
-    falling = {posx: pos, posy: 0, color: 1};
+
+    color = Math.floor(Math.random() * (colors.length - 1) + 1);
+
+    falling = {posx: pos, posy: 0, color: color};
     showPiece(true);
     return;
   }

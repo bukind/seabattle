@@ -21,6 +21,12 @@ td {
 td.black {
   background-color: black;
 }
+td.red {
+  background-color: red;
+}
+td.green {
+  background-color: green;
+}
 td.blue {
   background-color: blue;
 }
