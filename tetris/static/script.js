@@ -57,12 +57,30 @@ function showPiece(show) {
   }
 }
 
+function dropPiece() {
+  var posy;
+  var i;
+  if (falling === null) {
+    return;
+  }
+  posy = falling.posy;
+  for (i = falling.posy+1; i < height; i++) {
+    if (cells[i][falling.posx] != 0) {
+      break;
+    }
+    posy = i;
+  }
+  showPiece(false);
+  falling.posy = posy;
+  showPiece(true);
+
+  stopPiece(posy);
+}
+
 // executed on the tick
 function onTick() {
   var p;    // element counting ticks
   var posy; // position on y of the falling block
-  var i;
-  var row;
 
   tick += 1;
 
@@ -86,6 +104,11 @@ function onTick() {
     return;
   }
 
+  if (tick > 100) {
+    dropPiece();
+    return;
+  }
+
   // try to move a piece
   posy = falling.posy + 1;
   if (posy < height) {
@@ -101,7 +124,14 @@ function onTick() {
 
   // ... yes, the falling piece hits the obstacle.
   // freeze it where it is now.
-  posy = falling.posy;
+  stopPiece(falling.posy);
+}
+
+function stopPiece(posy) {
+  var i;
+  var row;
+
+  // freeze the piece
   cells[posy][falling.posx] = falling.color;
   falling = null;
 
