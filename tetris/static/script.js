@@ -6,212 +6,252 @@ function onBodyLoaded() {
   game.run()
 }
 
-
 // create a game object
 function makeGame() {
   var height = 30;
   var width = 16;
   var colors = ["", "black", "red", "green", "blue"];
-  var i, j;
 
   var game = {
     // --- fields
     tick: 0,           // arbitrary time
     cells: [],         // the playing field
     falling: null,     // the falling piece or null
-    tickInterval: 100; // interval b/w ticks, ms
+    tickInterval: 100, // interval b/w ticks, ms
     linecount: 0,      // number of full lines collected
-    colors: colors,    // possible colors of pieces
     tickTimer: null,   // the ticking timer (to be init in run)
 
     // --- methods
-    run: runGame,      // run a game
-    onTick: onTickHandler,
-    onKeyUp: onKeyUpHandler,
+    width: function() { return this.cells[0].length; },
+    height: function() { return this.cells.length; },
+    run: null,      // run a game
+    onTick: null,
+    onKeyUp: null,
   };
 
   // initialize the game field
-  for (i = 0; i < height; i++) {
-    var row;
-    row = [];
-    for (j = 0; j < width; j++) {
+  {
+    var i, j;
+    for (i = 0; i < height; i++) {
+      var row;
+      row = [];
+      for (j = 0; j < width; j++) {
+        row.push(0);
+      }
+      game.cells.push(row)
+    }
+  }
+
+  var domLog = function(msg) {
+    var td = document.getElementById("log")
+    td.innerHTML += msg + "<br/>\n";
+  }
+
+  // helper function to convert cell position into the id.
+  var domCellId = function(y, x) {
+    return "" + y.toString() + "-" + x.toString();
+  }
+
+  // show the initial field
+  var domMakeField = function(height, width) {
+    var well;
+    var mesh = "";
+    var i, j;
+
+    // create a well
+    well = document.getElementById("well-holder");
+    mesh += "<table id=\"well\" class=\"well\">\n";
+    for (i = 0; i < height; i++) {
+      mesh += "<tr>\n";
+      for (j = 0; j < width; j++) {
+        mesh += " <td id=\"" + domCellId(i,j) + "\"></td>\n";
+      }
+      mesh += "</tr>\n";
+    }
+    mesh += "</table>\n";
+    well.innerHTML = mesh;
+  }
+
+  var domShowField = function(height, width, cells) {
+    var i, j;
+    for (i = 0; i < height; i++) {
+      for (j = 0; j < width; j++) {
+        var td = document.getElementById(domCellId(i,j));
+        td.className = colors[cells[i][j]];
+      }
+    }
+  }
+
+  // show the tick value
+  var domShowTick = function(tick) {
+    var p = document.getElementById("tick");
+    p.innerHTML = tick.toString();
+  }
+
+  var domShowLineCount = function(linecount) {
+    document.getElementById("linecount").innerHTML = linecount.toString();
+  }
+
+  var domShowPiece = function(piece, show) {
+    var td = document.getElementById(domCellId(piece.posy, piece.posx));
+    if (show) {
+      td.classList.add(colors[piece.color]);
+    } else {
+      td.classList.remove(colors[piece.color]);
+    }
+  }
+
+  var domRedrawPiece = function(oldpiece, newpiece) {
+    domShowPiece(oldpiece, false);
+    domShowPiece(newpiece, true);
+  }
+
+  // the reaction on the key pressing
+  game.onKeyUp = function(e) {
+    var key = e.keyCode ? e.keyCode : e.which;
+    if (key == 37) { // leftkey
+      // try to move left
+    } else if (key == 39) { // rightkey
+      // try to move right
+    } else if (key == 65) { // A
+    } else if (key == 68) { // D
+    } else if (key == 32) { // space
+      // drop it
+      this.dropFallingPiece();
+    }
+  }
+
+  var makeRandInt = function(min, max) {
+    return Math.floor(Math.random() * (max-min)) + min;
+  }
+
+  // generate the falling piece
+  game.genFallingPiece = function() {
+    var posx = makeRandInt(0, this.width());
+    var color = makeRandInt(1, colors.length);
+    this.falling = {
+      posy: 0,
+      posx: posx,
+      color: color,
+      clone: function() {
+        var np = {
+          posx: this.posx,
+          posy: this.posy,
+          color: this.color,
+          clone: this.clone,
+        return np;
+      },
+    };
+  }
+
+  // check one cell in the board
+  game.isCellEmpty = function(y,x) {
+    return this.cells[y][x] === 0;
+  }
+
+  // check if a piece can fit into the board
+  game.canFitPiece = function() {
+    var piece = this.falling;
+    return (piece.posy < this.height() &&
+      piece.posx >= 0 && piece.posx < this.width() &&
+      this.isCellEmpty(piece.posy, piece.posx));
+  }
+
+  // end the game
+  game.endGame = function() {
+    window.clearInterval(this.tickTimer);
+  }
+
+  game.slideFallingPiece = function() {
+    this.falling.posy += 1;
+    if (!this.canFitPiece()) {
+      this.falling.posy -= 1;
+      return false;
+    }
+    return true;
+  }
+
+  game.dropFallingPiece = function() {
+    if (this.falling === null) {
+      return;
+    }
+    var oldpiece = this.falling.clone();
+    for (i = 0; i < height; i++) {
+      if (!this.slideFallingPiece()) {
+        break;
+      }
+    }
+    domRedrawPiece(oldpiece, this.falling);
+    this.stopFallingPiece();
+  }
+
+  game.stopFallingPiece = function() {
+    var i;
+    var posy = this.falling.posy;
+
+    // freeze the piece
+    this.cells[posy][this.falling.posx] = this.falling.color;
+    this.falling = null;
+
+    // check if the line is complete.
+    for (i = 0; i < this.width(); i++) {
+      if (this.isCellEmpty(posy,i)) {
+        return;
+      }
+    }
+
+    // cut the complete line
+    this.cells.splice(posy, 1);
+    var row = [];
+    for (i = 0; i < width; i++) {
       row.push(0);
     }
-    game.cells.push(row)
+    this.cells.unshift(row);
+
+    domShowField(posy+1, width, this.cells);
+
+    this.linecount += 1;
+    domShowLineCount(this.linecount);
+  }
+
+  // action performed periodically
+  var onTick = function() {
+    game.tick += 1;
+    domShowTick(game.tick);
+
+    if (game.falling === null) {
+      game.genFallingPiece();
+      if (!game.canFitPiece()) {
+        // failed to fit
+        game.falling = null;
+        game.endGame();
+        return;
+      }
+      domShowPiece(game.falling, true);
+      return;
+    }
+
+    if (this.tick > 100) {
+      this.dropFallingPiece();
+      return;
+    }
+
+    var oldpiece = game.falling.clone();
+    if (game.slideFallingPiece()) {
+      domRedrawPiece(oldpiece, game.falling);
+      return;
+    }
+  
+    // freeze it where it is now.
+    game.stopFallingPiece();
+  }
+
+  // running the game - field initial show + setting events.
+  game.run = function() {
+    domMakeField(this.height(), this.width());
+    this.tickTimer = window.setInterval(onTick, this.tickInterval);
+    window.onkeyup = this.onKeyUp;
   }
 
   return game;
 }
-
-
-// run the game.
-// initialize the game and start the timer.
-function runGame() {
-  domShowField(this.cells.length, this.cells[0].length);
-  this.tickTimer = window.setInterval(this.onTick, this.tickInterval);
-  window.onkeyup = this.onKeyUp;
-}
-
-
-// show initial field.
-function domShowField(height, width) {
-  var well;
-  var mesh = "";
-  var i, j;
-
-  // create a well
-  well = document.getElementById("well-holder");
-  mesh += "<table id=\"well\" class=\"well\">\n";
-  for (i = 0; i < height; i++) {
-    mesh += "<tr>\n";
-    for (j = 0; j < width; j++) {
-      mesh += " <td id=\"" + mkCellId(i,j) + "\"></td>\n";
-    }
-    mesh += "</tr>\n";
-  }
-  mesh += "</table>\n";
-  well.innerHTML = mesh;
-}
-
-
-function onKeyUpHandler(e) {
-  var key = e.keyCode ? e.keyCode : e.which;
-  if (key == 37) { // leftkey
-    // try to move left
-  } else if (key == 39) { // rightkey
-    // try to move right
-  } else if (key == 65) { // A
-  } else if (key == 68) { // D
-  } else if (key == 32) { // space
-    // drop it
-    this.dropPiece(this.falling);
-  }
-}
-
-
-// executed on the tick
-function onTickHandler() {
-  var p;    // element counting ticks
-  var posy; // position on y of the falling block
-
-  tick += 1;
-
-  p = document.getElementById("tick");
-  p.innerHTML = tick.toString();
-
-  if (falling === null) {
-    // generate a new piece
-    var pos, color;
-    pos = Math.floor(Math.random() * width);
-    if (cells[0][pos] != 0) {
-      // this is already occupied, the well is full.
-      window.clearInterval(tickTimer);
-      return;
-    }
-
-    color = Math.floor(Math.random() * (colors.length - 1) + 1);
-
-    falling = {posx: pos, posy: 0, color: color};
-    showPiece(true);
-    return;
-  }
-
-  if (tick > 100) {
-    dropPiece();
-    return;
-  }
-
-  // try to move a piece
-  posy = falling.posy + 1;
-  if (posy < height) {
-    // check if it hits the previous items ...
-    if (cells[posy][falling.posx] === 0) {
-      // ... no, so move it.
-      showPiece(false);
-      falling.posy = posy;
-      showPiece(true);
-      return;
-    }
-  }
-
-  // ... yes, the falling piece hits the obstacle.
-  // freeze it where it is now.
-  stopPiece(falling.posy);
-}
-
-function stopPiece(posy) {
-  var i;
-  var row;
-
-  // freeze the piece
-  cells[posy][falling.posx] = falling.color;
-  falling = null;
-
-  // check if the line is complete.
-  for (i = 0; i < width; i++) {
-    if (cells[posy][i] === 0) {
-      // not fully filled
-      return;
-    }
-  }
-
-  // the whole line is filled, cut it out
-  cells.splice(posy,1);
-  row = [];
-  for (i = 0; i < width; i++) {
-    row.push(0);
-  }
-  cells.unshift(row);
-
-  // redraw all elements above and including posy.
-  for (i = posy; i >= 0; i--) {
-    var j;
-    for (j = 0; j < width; j++) {
-      var td = document.getElementById(mkId(i,j));
-      td.className = colors[cells[i][j]];
-    }
-  }
-
-  // increment the linecount and show it.
-  linecount += 1;
-  document.getElementById("linecount").innerHTML = linecount.toString();
-}
-
-
-// helper function to convert position (i,j) into the cell id.
-function mkCellId(i, j) {
-  return "" + i.toString() + "-" + j.toString();
-}
-
-
-
-
-function showPiece(show) {
-  var td = document.getElementById(mkId(falling.posy, falling.posx));
-  if (show) {
-  	td.classList.add(colors[falling.color]);
-  } else {
-    td.classList.remove(colors[falling.color]);
-  }
-}
-
-function dropPiece() {
-  var posy;
-  var i;
-  if (falling === null) {
-    return;
-  }
-  posy = falling.posy;
-  for (i = falling.posy+1; i < height; i++) {
-    if (cells[i][falling.posx] != 0) {
-      break;
-    }
-    posy = i;
-  }
-  showPiece(false);
-  falling.posy = posy;
-  showPiece(true);
-
-  stopPiece(posy);
-}
-
