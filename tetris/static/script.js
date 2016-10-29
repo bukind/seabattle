@@ -25,8 +25,6 @@ function makeGame() {
     width: function() { return this.cells[0].length; },
     height: function() { return this.cells.length; },
     run: null,      // run a game
-    onTick: null,
-    onKeyUp: null,
   };
 
   // initialize the game field
@@ -107,7 +105,7 @@ function makeGame() {
   }
 
   // the reaction on the key pressing
-  game.onKeyUp = function(e) {
+  var onKeyUp = function(e) {
     var key = e.keyCode ? e.keyCode : e.which;
     if (key == 37) { // leftkey
       // try to move left
@@ -117,7 +115,7 @@ function makeGame() {
     } else if (key == 68) { // D
     } else if (key == 32) { // space
       // drop it
-      this.dropFallingPiece();
+      game.dropFallingPiece();
     }
   }
 
@@ -139,6 +137,7 @@ function makeGame() {
           posy: this.posy,
           color: this.color,
           clone: this.clone,
+        };
         return np;
       },
     };
@@ -231,8 +230,8 @@ function makeGame() {
       return;
     }
 
-    if (this.tick > 100) {
-      this.dropFallingPiece();
+    if (game.tick > 100) {
+      game.dropFallingPiece();
       return;
     }
 
@@ -250,7 +249,7 @@ function makeGame() {
   game.run = function() {
     domMakeField(this.height(), this.width());
     this.tickTimer = window.setInterval(onTick, this.tickInterval);
-    window.onkeyup = this.onKeyUp;
+    window.onkeyup = onKeyUp;
   }
 
   return game;
