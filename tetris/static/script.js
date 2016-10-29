@@ -107,10 +107,19 @@ function makeGame() {
   // the reaction on the key pressing
   var onKeyUp = function(e) {
     var key = e.keyCode ? e.keyCode : e.which;
-    if (key == 37) { // leftkey
-      // try to move left
-    } else if (key == 39) { // rightkey
-      // try to move right
+
+    if (game.falling === null) {
+      return;
+    }
+
+    if (key === 37 || key === 39) { // left/right
+      var oldpiece = game.falling.clone();
+      game.falling.posx += key - 38;
+      if (!game.canFitPiece()) {
+        game.falling = oldpiece;
+      } else {
+        domRedrawPiece(oldpiece, game.falling);
+      }
     } else if (key == 65) { // A
     } else if (key == 68) { // D
     } else if (key == 32) { // space
@@ -230,10 +239,12 @@ function makeGame() {
       return;
     }
 
+    /*
     if (game.tick > 100) {
       game.dropFallingPiece();
       return;
     }
+     */
 
     var oldpiece = game.falling.clone();
     if (game.slideFallingPiece()) {
