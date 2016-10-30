@@ -11,6 +11,13 @@ function makeGame() {
   var height = 30;
   var width = 16;
   var colors = ["", "black", "red", "green", "blue"];
+  var pieces = [
+    [[0,-1], [0,0], [0,1], [0,2]], // line
+    [[0,-1], [0,0], [1,0], [1,1]], // z
+    [[1,-1], [1,0], [0,0], [0,1]], // s
+    [[0,0], [0,1], [1,0], [1,1]],  // block
+    [[0,-1], [0,0], [0,1], [1,0]], // taur
+  ];
 
   var game = {
     // --- fields
@@ -22,8 +29,6 @@ function makeGame() {
     tickTimer: null,   // the ticking timer (to be init in run)
 
     // --- methods
-    width: function() { return this.cells[0].length; },
-    height: function() { return this.cells.length; },
     run: null,      // run a game
   };
 
@@ -51,7 +56,7 @@ function makeGame() {
   }
 
   // show the initial field
-  var domMakeField = function(height, width) {
+  var domMakeField = function() {
     var well;
     var mesh = "";
     var i, j;
@@ -91,11 +96,21 @@ function makeGame() {
   }
 
   var domShowPiece = function(piece, show) {
-    var td = document.getElementById(domCellId(piece.posy, piece.posx));
-    if (show) {
-      td.classList.add(colors[piece.color]);
-    } else {
-      td.classList.remove(colors[piece.color]);
+    var xy = piece.getXY();
+    var i;
+    for (i = 0; i < xy.length; i++) {
+      if (xy[i][0] < 0 || xy[i][0] >= width) {
+        continue;
+      }
+      if (xy[i][1] < 0 || xy[i][1] >= height) {
+        continue;
+      }
+      var td = document.getElementById(domCellId(xy[i][1], xy[i][0]));
+      if (show) {
+        td.classList.add(colors[piece.color]);
+      } else {
+        td.classList.remove(colors[piece.color]);
+      }
     }
   }
 
@@ -134,17 +149,30 @@ function makeGame() {
 
   // generate the falling piece
   game.genFallingPiece = function() {
-    var posx = makeRandInt(0, this.width());
+    var posx = makeRandInt(0, width);
     var color = makeRandInt(1, colors.length);
+    var pn = makeRandInt(0, pieces.length);
     this.falling = {
       posy: 0,
       posx: posx,
       color: color,
+      piece: pieces[pn],
+      getXY: function() {
+        var xy = [];
+        var i;
+        for (i = 0; i < this.piece.length; i++) {
+          xy.push([this.posx+this.piece[i][0],
+                   this.posy+this.piece[i][1]])
+        }
+        return xy;
+      },
       clone: function() {
         var np = {
           posx: this.posx,
           posy: this.posy,
           color: this.color,
+          piece: this.piece,
+          getXY: this.getXY,
           clone: this.clone,
         };
         return np;
@@ -154,15 +182,40 @@ function makeGame() {
 
   // check one cell in the board
   game.isCellEmpty = function(y,x) {
+    if (x < 0 || x >= width) { return false; }
+    if (y < 0) { return true; }
+    if (y >= height) { return false; }
     return this.cells[y][x] === 0;
   }
 
   // check if a piece can fit into the board
   game.canFitPiece = function() {
-    var piece = this.falling;
-    return (piece.posy < this.height() &&
-      piece.posx >= 0 && piece.posx < this.width() &&
-      this.isCellEmpty(piece.posy, piece.posx));
+    var piece = this.falling.getXY();
+    var i;
+    var minx = piece[0][0];
+    var maxx = maxx;
+    // try to fix cases where x < 0 or x >= width
+    for (i = 1; i < piece.length; i++) {
+      var x = piece[i][0];
+      if (x < minx) {
+        minx = x;
+      } else if (x > maxx) {
+        maxx = x;
+      }
+    }
+    if (minx < 0) {
+      this.falling.posx -= minx;
+      piece = this.falling.getXY();
+    } else if (maxx >= width) {
+      this.falling.posx -= (maxx - width) + 1;
+      piece = this.falling.getXY();
+    }
+    for (i = 0; i < piece.length; i++) {
+      if (!this.isCellEmpty(piece[i][1], piece[i][0])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // end the game
@@ -195,30 +248,58 @@ function makeGame() {
 
   game.stopFallingPiece = function() {
     var i;
-    var posy = this.falling.posy;
+    var j;
+    var xy = this.falling.getXY();
+    var miny = xy[0][1];
+    var maxy = miny;
 
     // freeze the piece
-    this.cells[posy][this.falling.posx] = this.falling.color;
+    for (i = 0; i < xy.length; i++) {
+      var y = xy[i][1];
+      this.cells[y][xy[i][0]] = this.falling.color;
+      if (y < miny) {
+        miny = y;
+      }
+      if (y > maxy) {
+        maxy = y;
+      }
+    }
     this.falling = null;
 
     // check if the line is complete.
-    for (i = 0; i < this.width(); i++) {
-      if (this.isCellEmpty(posy,i)) {
-        return;
+    var ycomplete = [];
+    for (i = miny; i <= maxy; i++) {
+      var ok = true;
+      for (j = 0; j < width; j++) {
+        if (this.isCellEmpty(i,j)) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        ycomplete.push(i);
       }
     }
 
-    // cut the complete line
-    this.cells.splice(posy, 1);
-    var row = [];
-    for (i = 0; i < width; i++) {
-      row.push(0);
+    if (ycomplete.length == 0) {
+      return;
     }
-    this.cells.unshift(row);
 
-    domShowField(posy+1, width, this.cells);
+    // cut the complete line
+    for (i = ycomplete.length-1; i >= 0; i--) {
+      this.cells.splice(ycomplete[i], 1);
+    }
+    for (j = 0; j < ycomplete.length; j++) {
+      var row = [];
+      for (i = 0; i < width; i++) {
+        row.push(0);
+      }
+      this.cells.unshift(row);
+    }
 
-    this.linecount += 1;
+    domShowField(ycomplete[ycomplete.length-1]+1, width, this.cells);
+    this.linecount += ycomplete.length;
+
     domShowLineCount(this.linecount);
   }
 
@@ -258,7 +339,7 @@ function makeGame() {
 
   // running the game - field initial show + setting events.
   game.run = function() {
-    domMakeField(this.height(), this.width());
+    domMakeField(height, width);
     this.tickTimer = window.setInterval(onTick, this.tickInterval);
     window.onkeyup = onKeyUp;
   }
