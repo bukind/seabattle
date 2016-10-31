@@ -18,6 +18,15 @@ function makeGame() {
     [[0,0], [0,1], [1,0], [1,1]],  // block
     [[0,-1], [0,0], [0,1], [1,0]], // taur
   ];
+  // rotation matrix
+  //    0 = (x,y)
+  //  +90 = (y,-x)
+  // +180 = (-x,-y)
+  // +270 = (-y,x)
+  // rotc is factors to apply to (x,y), then swap (x,y) for 1st and 3rd.
+  var rotc = [
+    [1, 1], [-1, 1], [-1, -1], [1, -1],
+  ];
 
   var game = {
     // --- fields
@@ -120,7 +129,7 @@ function makeGame() {
   }
 
   // the reaction on the key pressing
-  var onKeyUp = function(e) {
+  var onKeyPress = function(e) {
     var key = e.keyCode ? e.keyCode : e.which;
 
     if (game.falling === null) {
@@ -152,17 +161,20 @@ function makeGame() {
     var posx = makeRandInt(0, width);
     var color = makeRandInt(1, colors.length);
     var pn = makeRandInt(0, pieces.length);
+    var rotn = makeRandInt(0, rotc.length);
     this.falling = {
       posy: 0,
       posx: posx,
+      rot: rotn,
       color: color,
       piece: pieces[pn],
       getXY: function() {
         var xy = [];
-        var i;
-        for (i = 0; i < this.piece.length; i++) {
-          xy.push([this.posx+this.piece[i][0],
-                   this.posy+this.piece[i][1]])
+        var swap = (rot === 1 || rot === 3);
+        for (var i = 0; i < this.piece.length; i++) {
+          var x = this.posx + this.piece[i][0] * rotc[this.rot][0];
+          var y = this.posy + this.piece[i][1] * rotc[this.rot][1];
+          xy.push(swap ? [y,x] : [x,y]);
         }
         return xy;
       },
@@ -170,6 +182,7 @@ function makeGame() {
         var np = {
           posx: this.posx,
           posy: this.posy,
+          rot:  this.rot,
           color: this.color,
           piece: this.piece,
           getXY: this.getXY,
@@ -332,7 +345,7 @@ function makeGame() {
       domRedrawPiece(oldpiece, game.falling);
       return;
     }
-  
+
     // freeze it where it is now.
     game.stopFallingPiece();
   }
@@ -341,7 +354,7 @@ function makeGame() {
   game.run = function() {
     domMakeField(height, width);
     this.tickTimer = window.setInterval(onTick, this.tickInterval);
-    window.onkeyup = onKeyUp;
+    window.onkeypress = onKeyPress;
   }
 
   return game;
