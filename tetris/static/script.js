@@ -136,19 +136,34 @@ function makeGame() {
       return;
     }
 
+    var newpiece = null;
     if (key === 37 || key === 39) { // left/right
-      var oldpiece = game.falling.clone();
-      game.falling.posx += key - 38;
-      if (!game.canFitPiece()) {
-        game.falling = oldpiece;
-      } else {
-        domRedrawPiece(oldpiece, game.falling);
+      newpiece = game.falling.clone();
+      newpiece.posx += key - 38;
+    } else if (key === 97 || key === 100) { // 'a' or 'd'
+      newpiece = game.falling.clone();
+      newpiece.rot += (key < 98) ? -1 : 1;
+      if (newpiece.rot < 0) {
+        newpiece.rot = rotc.length - 1;
+      } else if (newpiece.rot >= rotc.length) {
+        newpiece.rot = 0;
       }
-    } else if (key == 65) { // A
-    } else if (key == 68) { // D
     } else if (key == 32) { // space
       // drop it
       game.dropFallingPiece();
+      return;
+    } else {
+      return;
+    }
+
+    var oldpiece = game.falling;
+    game.falling = newpiece;
+
+    if (!game.canFitPiece()) {
+      // restore
+      game.falling = oldpiece;
+    } else {
+      domRedrawPiece(oldpiece, game.falling);
     }
   }
 
@@ -170,11 +185,12 @@ function makeGame() {
       piece: pieces[pn],
       getXY: function() {
         var xy = [];
-        var swap = (rot === 1 || rot === 3);
+        var swap = (this.rot === 1 || this.rot === 3);
         for (var i = 0; i < this.piece.length; i++) {
-          var x = this.posx + this.piece[i][0] * rotc[this.rot][0];
-          var y = this.posy + this.piece[i][1] * rotc[this.rot][1];
-          xy.push(swap ? [y,x] : [x,y]);
+          var dx = this.piece[i][0] * rotc[this.rot][0];
+          var dy = this.piece[i][1] * rotc[this.rot][1];
+          xy.push(swap ? [this.posx + dy, this.posy + dx] :
+                         [this.posx + dx, this.posy + dy]);
         }
         return xy;
       },
