@@ -182,13 +182,14 @@ function makeGame() {
       posx: posx,
       rot: rotn,
       color: color,
-      piece: pieces[pn],
+      piece: pn,
       getXY: function() {
         var xy = [];
         var swap = (this.rot === 1 || this.rot === 3);
-        for (var i = 0; i < this.piece.length; i++) {
-          var dx = this.piece[i][0] * rotc[this.rot][0];
-          var dy = this.piece[i][1] * rotc[this.rot][1];
+        var piece = pieces[this.piece];
+        for (var i = 0; i < piece.length; i++) {
+          var dx = piece[i][0] * rotc[this.rot][0];
+          var dy = piece[i][1] * rotc[this.rot][1];
           xy.push(swap ? [this.posx + dy, this.posy + dx] :
                          [this.posx + dx, this.posy + dy]);
         }
@@ -203,8 +204,15 @@ function makeGame() {
           piece: this.piece,
           getXY: this.getXY,
           clone: this.clone,
+          toString: this.toString,
         };
         return np;
+      },
+      toString: function() {
+        return "posx:" + this.posx.toString() +
+          ", posy:" + this.posy.toString() +
+          ", rot:" + this.rot.toString() +
+          ", piece:" + this.piece;
       },
     };
   }
@@ -248,7 +256,8 @@ function makeGame() {
   }
 
   // end the game
-  game.endGame = function() {
+  game.endGame = function(msg) {
+    domLog(msg);
     window.clearInterval(this.tickTimer);
   }
 
@@ -341,8 +350,7 @@ function makeGame() {
       game.genFallingPiece();
       if (!game.canFitPiece()) {
         // failed to fit
-        game.falling = null;
-        game.endGame();
+        game.endGame("cannot fit a piece " + game.falling.toString());
         return;
       }
       domShowPiece(game.falling, true);
