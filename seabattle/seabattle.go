@@ -10,7 +10,9 @@ import (
 	// "log"
 	"math/rand"
 	"os"
+	"path"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -146,6 +148,44 @@ func getInt(ctx *web.Context, name string) (int, error) {
 }
 
 func main() {
+	retcode := 0
+	defer func() {
+		os.Exit(retcode)
+	}()
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Cannot find current directory", err)
+		retcode = 1
+		return
+	}
+	defer os.Chdir(cwd)
+
+	wantFile := "github.com/bukind/seabattle/seabattle/main.tmpl"
+	for fp := wantFile; ; {
+		f, err := os.Open(fp)
+		defer f.Close()
+		if err == nil {
+			wd := path.Dir(fp)
+			if err := os.Chdir(wd); err != nil {
+				retcode = 1
+				fmt.Fprintln(os.Stderr, "Cannot chdir to", wd)
+				return
+			}
+			fmt.Println("Changed dir to", wd)
+			break
+		}
+		// continue to search
+		words := strings.SplitN(fp, "/", 2)
+		if len(words) != 2 {
+			// the last attempt was made and we haven't found the file yet.
+			retcode = 1
+			fmt.Fprintln(os.Stderr, "Cannot find", wantFile)
+			return
+		}
+		fp = words[1]
+	}
+
 	rand.Seed(time.Now().Unix())
 
 	web.Get("/", start)
